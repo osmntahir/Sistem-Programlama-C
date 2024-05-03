@@ -29,6 +29,7 @@ Dllist *create_dllist() {
         fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
         exit(EXIT_FAILURE);
     }
+   
     list->head = NULL;
     list->tail = NULL;
     list->size = 0;
@@ -67,51 +68,43 @@ void clear_dllist(Dllist *list) {
     list->tail = NULL;
     list->size = 0;
 }
+void dllist_insert(Dllist *list, DllNode *cursorNODE, char data) {
+    // Yeni bir düğüm oluştur
+    DllNode *newNode = (DllNode *)malloc(sizeof(DllNode));
+    if (newNode == NULL) {
+        fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->prev = NULL;
+    newNode->next = NULL;
 
-void dllist_insert(Dllist *list, DllNode *prev_node, char data) {
-    // insert a node after a specific node
-
-    // check if previous node is NULL
-    if (prev_node == NULL) {
-        // if prev_node is NULL, insert at the end of the list
-        DllNode *newNode = (DllNode *)malloc(sizeof(DllNode));
-        if (newNode == NULL) {
-            fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
-            exit(EXIT_FAILURE);
-        }
-        newNode->data = data;
+    if (list->head == NULL) {
+        // Liste boşsa, yeni düğümü başlangıç düğümü olarak ayarla
+        list->head = newNode;
+        list->tail = newNode;
+    } else if (cursorNODE == NULL) {
+        // İmleç düğümü boşsa, yeni düğümü listenin sonuna ekle
+        list->tail->next = newNode;
         newNode->prev = list->tail;
-        newNode->next = NULL;
-        if (list->tail != NULL) {
-            list->tail->next = newNode;
-        } else {
-            list->head = newNode;
-        }
+        list->tail = newNode;
+    } else if (cursorNODE->next == NULL) {
+        // İmleç düğümü son düğümse, yeni düğümü sonrasına ekle
+        cursorNODE->next = newNode;
+        newNode->prev = cursorNODE;
         list->tail = newNode;
     } else {
-        // allocate memory for newNode
-        DllNode *newNode = (DllNode *)malloc(sizeof(DllNode));
-        // assign data to newNode
-        newNode->data = data;
-
-        // set next of newNode to next of prev node
-        newNode->next = prev_node->next;
-
-        // set next of prev node to newNode
-        prev_node->next = newNode;
-
-        // set prev of newNode to the previous node
-        newNode->prev = prev_node;
-
-        // set prev of newNode's next to newNode
-        if (newNode->next != NULL) {
-            newNode->next->prev = newNode;
-        } else {
-            // if newNode is inserted at the end, update tail
-            list->tail = newNode;
-        }
+        // İmleç düğümü ortadaysa, yeni düğümü araya ekleyin
+        newNode->next = cursorNODE->next;
+        newNode->prev = cursorNODE;
+        cursorNODE->next->prev = newNode;
+        cursorNODE->next = newNode;
     }
+
+    // Yeni düğüm eklendiği için liste boyutunu artır
+    list->size++;
 }
+
 
 
 DllNode *cursorNode = NULL; // İmleç düğümü
