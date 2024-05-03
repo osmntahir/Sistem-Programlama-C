@@ -7,9 +7,6 @@
 #include "./Libfdr/include/jval.h"
 
 #define MAX_ARGUMENTS 50
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // Çift yönlü bağlı list düğüm yapısı
 typedef struct DllNode {
@@ -71,27 +68,53 @@ void clear_dllist(Dllist *list) {
     list->size = 0;
 }
 
-// Çift yönlü bağlı listeye düğüm ekleme
-void dllist_insert(Dllist *list, char data) {
-    DllNode *new_node = (DllNode *)malloc(sizeof(DllNode));
-    if (new_node == NULL) {
-        fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
-        exit(EXIT_FAILURE);
-    }
-    new_node->data = data;
-    new_node->prev = list->tail;
-    new_node->next = NULL;
+void dllist_insert(Dllist *list, DllNode *prev_node, char data) {
+    // insert a node after a specific node
 
-    if (list->head == NULL) {
-        list->head = new_node;
+    // check if previous node is NULL
+    if (prev_node == NULL) {
+        // if prev_node is NULL, insert at the end of the list
+        DllNode *newNode = (DllNode *)malloc(sizeof(DllNode));
+        if (newNode == NULL) {
+            fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
+            exit(EXIT_FAILURE);
+        }
+        newNode->data = data;
+        newNode->prev = list->tail;
+        newNode->next = NULL;
+        if (list->tail != NULL) {
+            list->tail->next = newNode;
+        } else {
+            list->head = newNode;
+        }
+        list->tail = newNode;
     } else {
-        list->tail->next = new_node;
-    }
+        // allocate memory for newNode
+        DllNode *newNode = (DllNode *)malloc(sizeof(DllNode));
+        // assign data to newNode
+        newNode->data = data;
 
-    list->tail = new_node;
-    list->size++;
+        // set next of newNode to next of prev node
+        newNode->next = prev_node->next;
+
+        // set next of prev node to newNode
+        prev_node->next = newNode;
+
+        // set prev of newNode to the previous node
+        newNode->prev = prev_node;
+
+        // set prev of newNode's next to newNode
+        if (newNode->next != NULL) {
+            newNode->next->prev = newNode;
+        } else {
+            // if newNode is inserted at the end, update tail
+            list->tail = newNode;
+        }
+    }
 }
 
+
+DllNode *cursorNode = NULL; // İmleç düğümü
 // Yaz fonksiyonu
 void yaz(char *args[], Dllist *list, int arg_count) {
     for (int i = 0; i < arg_count; i += 2) { // Her iki argüman için
@@ -104,22 +127,29 @@ void yaz(char *args[], Dllist *list, int arg_count) {
                 if (*ptr == '\\') {
                     ptr++; // '\\' karakterinden sonraki karaktere geç
                     if (*ptr == 'b') {
-                        dllist_insert(list, ' '); // '\b' karakterini liste
+                        dllist_insert(list, cursorNode, ' '); // '\b' karakterini liste
                     } else if (*ptr == 'n') {
-                        dllist_insert(list, '\n'); // '\n' karakterini liste
+                        dllist_insert(list, cursorNode, '\n'); // '\n' karakterini liste
                     } else if (*ptr == 't') {
-                        dllist_insert(list, '\t'); // '\t' karakterini liste
+                        dllist_insert(list, cursorNode, '\t'); // '\t' karakterini liste
                     } else {
-                        dllist_insert(list, '\\'); // '\\' karakterini liste
+                        dllist_insert(list, cursorNode, '\\'); // '\\' karakterini liste
                     }
                 } else {
-                    dllist_insert(list, *ptr); // Karakteri liste
+                    dllist_insert(list, cursorNode, *ptr); // Karakteri liste
                 }
                 ptr++; // Bir sonraki karaktere geç
+            }
+            // Cursor düğümünü bir sonrakine geçir
+            if (cursorNode != NULL && cursorNode->next != NULL) {
+                cursorNode = cursorNode->next;
             }
         }
     }
 }
+
+
+
 void sil(char *args[], Dllist *list, int arg_count) {
     for (int i = 0; i < arg_count; i += 2) { // Her iki argüman için
         int count = atoi(args[i]); // Sayıyı al
@@ -135,6 +165,9 @@ void sil(char *args[], Dllist *list, int arg_count) {
             } else {
                 current = current->prev; // Bir önceki düğüme geç
             }
+            cursorNode = current; // İmleci güncelle
+            printf("\n -- Silindi: %c\n", searchChar);
+            printf("\n -- Cursor: %c\n", cursorNode->data);
         }
     }
 }
@@ -158,8 +191,8 @@ void dosyaya_yaz(Dllist *list, FILE *outputFile) {
 }
 
 // Sonagit fonksiyonu
-void sonagit(FILE *outputFile) {
-   // cursor u sona getir
+void sonagit(Dllist *list) {
+    cursorNode = list->tail; // İmleci son düğüme taşı
    
 }
 
@@ -170,6 +203,7 @@ void dur() {
 }
 
 int main() {
+    
     FILE *outputFile = fopen("cikis.dat", "w+");
     if (outputFile == NULL) {
         fprintf(stderr, "Cikis dosyasi acilirken bir hata olustu.\n");
@@ -177,7 +211,7 @@ int main() {
     }
 
     Dllist *list = create_dllist(); // Yeni bir çift yönlü bağlı liste oluştur
-   
+    cursorNode = list->head; // İmleci başlangıç düğümüne taşı
     IS is = new_inputstruct("giris.dat");
     if (is == NULL) {
         fprintf(stderr, "Giris dosyasi acilirken bir hata olustu.\n");
@@ -201,7 +235,7 @@ int main() {
         } else if (strcmp(command, "sil:") == 0) {
             sil(args, list, arg_count);
         } else if (strcmp(command, "sonagit:") == 0) {
-            sonagit(outputFile);
+            sonagit(list);
         } else if (strcmp(command, "dur:") == 0) {
              dosyaya_yaz(list, outputFile); // Çift yönlü bağlı listeyi dosyaya yaz
             dur();
