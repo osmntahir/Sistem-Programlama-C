@@ -147,9 +147,6 @@ void yaz(char *args[], Dllist *list, int arg_count) {
         }
     }
 }
-
-
-
 void sil(char *args[], Dllist *list, int arg_count) {
     for (int i = 0; i < arg_count; i += 2) { // Her iki argüman için
         int count = atoi(args[i]); // Sayıyı al
@@ -166,13 +163,15 @@ void sil(char *args[], Dllist *list, int arg_count) {
                 current = current->prev; // Bir önceki düğüme geç
             }
             cursorNode = current; // İmleci güncelle
-            printf("\n -- Silindi: %c\n", searchChar);
-            printf("\n -- Cursor: %c\n", cursorNode->data);
+           
         }
+        if (count > 0)
+        {
+            cursorNode = list->head;
+        }
+        
     }
 }
-
-
 void dosyaya_yaz(Dllist *list, FILE *outputFile) {
     if (outputFile == NULL) {
         fprintf(stderr, "Dosya isaretcisi gecerli degil.\n");
