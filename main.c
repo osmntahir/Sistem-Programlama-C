@@ -29,8 +29,19 @@ Dllist *create_dllist() {
         fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
         exit(EXIT_FAILURE);
     }
-   
-    list->head = NULL;
+    DllNode *head = (DllNode *)malloc(sizeof(DllNode));
+    if (head == NULL) {
+        fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
+        exit(EXIT_FAILURE);
+    }
+    DllNode *HeadPrev = (DllNode *)malloc(sizeof(DllNode));
+    if (HeadPrev == NULL) {
+        fprintf(stderr, "Bellek tahsisi yapilamadi.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    list->head = head;
+    list->head->prev = HeadPrev;
     list->tail = NULL;
     list->size = 0;
     return list;
@@ -175,6 +186,7 @@ void dosyaya_yaz(Dllist *list, FILE *outputFile) {
     
     DllNode *current = list->head;
     while (current != NULL) { // Liste üzerinde gezin
+        if(current->data != '\0')
        fprintf(outputFile, "%c", current->data); // Karakteri dosyaya yaz
         current = current->next; // Bir sonraki düğüme geç
     }
