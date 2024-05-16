@@ -19,11 +19,12 @@ Proje, aşağıdaki komutları ve özel karakterleri içermektedir:
 ## Kullanım
 
 Program, komut satırından giriş ve çıkış dosyalarının adlarını alır. Eğer bu dosyaların isimleri verilmezse, program kullanıcıyı uyarır veya öntanımlı dosya isimlerini kullanır.
+Program Linux işletim sisteminde çalışır
 
 Örnek kullanım:
 
 ```sh
-./program girdi_dosyasi.txt cikti_dosyasi.txt
+./program girdi_dosyasi.dat cikti_dosyasi.dat
 ```
 
 ## İçerik
